@@ -1,0 +1,27 @@
+{
+  "name": "jquery-image-selector",
+  "version": "1.0.0",
+  "description": "A jQuery plugin to provide several methods of selecting an image (Copy & Paste, Drag & Drop from filesysten, Drag & Drop from another website, Copy & Paste image URL, Browsing filesystem) and showing a preview. The image data is extracted and placed into the target control in data URI format (Base64 encoded)",
+  "main": "dist/js/jquery-image-selector.min.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ReduGroup/jquery-image-selector.git"
+  },
+  "keywords": [
+    "jquery",
+    "image",
+    "selector",
+    "copy",
+    "paste",
+    "preview"
+  ],
+  "author": "Jonathon Henderson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ReduGroup/jquery-image-selector/issues"
+  },
+  "homepage": "https://github.com/ReduGroup/jquery-image-selector#readme"
+}
