@@ -28,11 +28,17 @@
         $remove: null,
         $dummyFileInput: null,
         busy: false,
+        defaultImage: null,
         /**
          * Plugin entry point.
          */
         init: function() {
             this.$el = $(this.element).hide();
+
+            var defaultImage = this.$el.data('default-image');
+            if (defaultImage) {
+                this.settings.defaultImage= defaultImage;
+            }
 
             this.$container = $('<div class="image-selector"></div>');
             this.$zone = $(this.settings.zoneTemplate).prop('contenteditable', true);
@@ -44,6 +50,7 @@
             this.addPasteEvent();
             this.addDropEvent();
             this.addDoubleClickEvent();
+            this.updatePreview(null);
         },
         /**
          * Bind a paste event to zone to capture image data pastes.
@@ -338,7 +345,9 @@
                 'background-repeat': 'no-repeat',
                 'background-position': 'center center',
                 'background-size': 'cover',
-                'background-image': imageData ? 'url(\''+ imageData +'\')' : 'none'
+                'background-image': imageData ?
+                    'url(\''+ imageData +'\')' :
+                    (!! this.settings.defaultImage ? 'url(\'' + this.settings.defaultImage + '\')' : 'none')
             });
         },
         /**
