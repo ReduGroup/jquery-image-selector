@@ -1,15 +1,19 @@
-.image-selector * {
+.jquery-image-selector__container * {
     box-sizing: border-box;
 }
 
-.image-selector {
+.jquery-image-selector__container {
     position: relative;
     width: 400px;
     height: 400px;
     box-sizing: border-box;
 }
+.jquery-image-selector__container.jquery-image-selector--busy {
+    opacity: 0.5;
+}
 
-.image-selector .zone {
+
+.jquery-image-selector__zone {
     display: block;
     width: 100%;
     height: 100%;
@@ -21,20 +25,16 @@
     z-index: 0;
     font-size: 0;
 }
-
-.image-selector.dragging .zone {
-    border: 2px dashed #ccc;
-}
-
-.image-selector.busy {
-    opacity: 0.5;
-}
-
-.image-selector .zone:focus {
+.jquery-image-selector__zone:focus {
     border: 2px dashed #d0d0d0;
 }
 
-.image-selector .remove {
+.jquery-image-selector__container.jquery-image-selector--dragging .jquery-image-selector__zone {
+    border: 2px dashed #ccc;
+}
+
+
+.jquery-image-selector__remove {
     display: block;
     border-radius: 50%;
     height: 25px;

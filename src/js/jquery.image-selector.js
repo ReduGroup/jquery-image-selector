@@ -4,11 +4,12 @@
 
     var pluginName = "imageSelector";
     var defaults = {
-        zoneTemplate: '<div class="zone"></div>',
-        removeTemplate: '<span class="remove">x</span>',
-        draggingClass: 'dragging',
-        busyClass: 'busy',
-        selected: null,
+        containerTemplate: '<div class="jquery-image-selector__container"></div>',
+        zoneTemplate: '<div class="jquery-image-selector__zone"></div>',
+        removeTemplate: '<span class="jquery-image-selector__remove">x</span>',
+        draggingClass: 'jquery-image-selector--dragging',
+        busyClass: 'jquery-image-selector--busy',
+        updated: null,
         removed: null
     };
 
@@ -29,6 +30,8 @@
         $dummyFileInput: null,
         busy: false,
         defaultImage: null,
+        publicMethods: ['setValue', 'getValue'],
+
         /**
          * Plugin entry point.
          */
@@ -40,7 +43,7 @@
                 this.settings.defaultImage= defaultImage;
             }
 
-            this.$container = $('<div class="image-selector"></div>');
+            this.$container = $(this.settings.containerTemplate);
             this.$zone = $(this.settings.zoneTemplate).prop('contenteditable', true);
             this.$container.append(this.$zone);
 
@@ -52,6 +55,7 @@
             this.addDoubleClickEvent();
             this.updatePreview(null);
         },
+
         /**
          * Bind a paste event to zone to capture image data pastes.
          */
@@ -82,6 +86,7 @@
                 return false;
             });
         },
+
         /**
          * Add bindings to the zone to handle the drag over, drag leave and drop events.
          */
@@ -142,6 +147,7 @@
                 _this.$container.removeClass(_this.settings.draggingClass);
             });
         },
+
         /**
          * Bind the click event to the zone to display a file selection dialog.
          */
@@ -186,6 +192,7 @@
                 return false;
             });
         },
+
         /**
          * Tell if the provided mime type refers to an image i.e. it begins with 'image' (image/png, image/gif etc.)
          *
@@ -195,6 +202,7 @@
         isMimeTypeImage: function (mime) {
             return typeof mime === 'string' && mime.indexOf('image') === 0;
         },
+
         /**
          * Tell if the provided value is a string URL.
          *
@@ -216,6 +224,7 @@
             );
             return pattern.test(url);
         },
+
         /**
          * Set the busy state of the plugin. Setting the busy state prevents repeated actions and updates the UI. If no
          * parameter is provided, it is assumed that we're setting the busy state to true.
@@ -230,6 +239,7 @@
             this.busy = !! busy;
             this.$container[this.busy ? 'addClass' : 'removeClass'](this.settings.busyClass);
         },
+
         /**
          * Tell if the plugin is currently busy or not.
          *
@@ -238,6 +248,7 @@
         isBusy: function () {
             return !! this.busy;
         },
+
         /**
          * Load an image into the plugin. This method is responsible for creating a file reader and using it to read the
          * image data. This method is also responsible for checking and setting the busy state of the plugin.
@@ -256,12 +267,13 @@
             setTimeout(function () {
                 var reader = new FileReader();
                 reader.onload = function (e) {
-                    return _this.imageSelected(e.target.result);
+                    return _this.setValue(e.target.result);
                 };
 
                 reader.readAsDataURL(file);
             }, 1);
         },
+
         /**
          * Load an image via from URL.
          *
@@ -285,7 +297,7 @@
             xhr.onload = function () {
                 var reader = new FileReader();
                 reader.onloadend = function () {
-                    _this.imageSelected(reader.result);
+                    _this.setValue(reader.result);
                 };
 
                 reader.readAsDataURL(xhr.response);
@@ -296,17 +308,16 @@
             xhr.responseType = 'blob';
             xhr.send();
         },
+
         /**
-         * When an image is added to the zone, this callback is executed, being provided with the image data. This
-         * method is responsible for setting the data of the element this plugin represents and updating the preview and
-         * state of the plugin.
+         * Set the value of the plugin to the given value (Image data).
          *
-         * @param imageData
+         * @param value
          */
-        imageSelected: function (imageData) {
+        setValue: function (value) {
             this.setBusy(false);
-            this.$el.val(imageData);
-            this.updatePreview(imageData);
+            this.$el.val(value);
+            this.updatePreview(value);
 
             var _this = this;
 
@@ -331,10 +342,20 @@
                 this.$container.append(this.$remove);
             }
 
-            if (typeof this.settings.selected === 'function') {
-                this.settings.selected(imageData);
+            if (typeof this.settings.updated === 'function') {
+                this.settings.updated(value);
             }
         },
+
+        /**
+         * Get the current value (Image data).
+         *
+         * @returns {*}
+         */
+        getValue: function () {
+            return this.$el.val();
+        },
+
         /**
          * Update the preview by changing the background image of the zone.
          *
@@ -350,6 +371,7 @@
                     (!! this.settings.defaultImage ? 'url(\'' + this.settings.defaultImage + '\')' : 'none')
             });
         },
+
         /**
          * Prevent all key input except for CTRL/CMD + V.
          */
@@ -366,15 +388,63 @@
                     }
                 });
             }
+        },
+
+        /**
+         * Call the method identified by the given name, with the given array of parameters. The name of the method must
+         * be in the publicMethods property.
+         *
+         * @param name
+         * @param parameters
+         * @returns {*}
+         */
+        callPublicMethod: function (name, parameters) {
+            if (this.publicMethods.indexOf(name) > -1) {
+                return this[name].apply(this, typeof parameters !== 'object' ? [parameters] : parameters);
+            }
+
+            console.error('Method \'' + name + '\' is not publicly available.');
+
+            return null;
         }
     });
 
-    $.fn[pluginName] = function(options) {
-        return this.each( function() {
-            if (!$.data(this, "plugin_" + pluginName)) {
-                $.data(this, "plugin_" + pluginName, new ImageSelector(this, options));
+    $.fn[pluginName] = function (options, value) {
+        var _pluginName = "plugin_"+ pluginName;
+
+        // Store the initial arguments to the plugin call.
+        var args = arguments;
+
+        // If we're calling a method on the plugin instance, response will be set to the corresponding return value.
+        // This will be subsequently returned if it has been defined. The callMethod variable is used to determine
+        // whether or not a method actually has been called or if we're just doing a straight up initialisation.
+        var response = undefined, callingMethod = false;
+
+        // For each of the selected objects
+        var $objects = this.each(function() {
+            // If the plugin has not yet been initialised, initialise it.
+            if (!$.data(this, _pluginName)) {
+                $.data(this, _pluginName, new ImageSelector(this, options));
+            }
+
+            // Alternatively, if the first parameter provided is a string, we want to call a public method on the plugin
+            // instance so we should build up an array of parameters from the args provided to the original method call
+            // excluding the first one which is the method name and use the callPublicMethod to call the function with
+            // the given arguments, if there are any.
+            else if (typeof options === 'string') {
+                callingMethod = true;
+
+                var parameters = [];
+                for (var i = 1; i < args.length; i++) {
+                    parameters.push(args[i]);
+                }
+
+                response = $.data(this, _pluginName).callPublicMethod(options, parameters);
             }
         });
+
+        // If we're calling a method, return the response. Otherwise, return the created objects.
+        return callingMethod ? response : $objects;
     };
 
 })(jQuery, window, document);
