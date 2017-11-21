@@ -1,6 +1,6 @@
 {
   "name": "jquery-image-selector",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "A jQuery plugin to provide several methods of selecting an image (Copy & Paste, Drag & Drop from filesysten, Drag & Drop from another website, Copy & Paste image URL, Browsing filesystem) and showing a preview. The image data is extracted and placed into the target control in data URI format (Base64 encoded)",
   "main": "dist/js/jquery-image-selector.min.js",
   "scripts": {
